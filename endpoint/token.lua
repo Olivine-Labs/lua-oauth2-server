@@ -41,6 +41,7 @@ local methods = {
         if not client_secret then
 
           local client = context.store.client.get(Query().client_id.is(client_id))[1]
+
           if client then
             --execute client id secured grant
             local func = grant.client[input.grant_type]

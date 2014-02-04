@@ -9,7 +9,7 @@ return function(client, context)
   if input.access_token then
 
     local token = store.get(Query().access_token.eq(input.access_token))[1]
-    local token_client = context.store.client.get(Query().client_id.eq(token.client_id))[1]
+    local token_client = context.store.client.get(Query().client_id.eq(token.app.client_id))[1]
 
     if token and token_client and token_client.trusted then
 
