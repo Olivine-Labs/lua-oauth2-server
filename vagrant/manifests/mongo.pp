@@ -1,0 +1,3 @@
+package { "mongodb":
+  ensure => "installed",
+}
