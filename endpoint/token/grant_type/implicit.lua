@@ -1,4 +1,5 @@
 local Query = require 'lusty-store.query'
+local Token = require 'util.token'
 
 return function(client, context)
 
@@ -11,23 +12,13 @@ return function(client, context)
       local q = Query()['user.id'].eq(token.user.id)['app.client_id'].eq(client.client_id).expires_in.gte(os.time())
       local token = store.get(q)[1]
       if not token then
-        local token = {
-          token_type = "bearer",
-          user = {
-            id = token.user.id
-          },
-          app = {
-            client_id = client.client_id
-          },
-          scope = type(input.scope) == "table" and input.scope or {input.scope},
-          access_token = context.global.uuid(),
-          refresh_token = context.global.uuid(),
-          expires_in = os.time() + context.global.token.expires,
-        }
+        token = Token(context, client.client_id, token.user.id, type(input.scope) == "table" and input.scope or {input.scope})
+        token.refresh_token = nil
       end
       store.put(q, token)
       token.expires_in = token.expires_in - os.time()
       token._id = nil
+      token.refresh_token = nil
       context.response.status = 201
       context.output = token
     else
