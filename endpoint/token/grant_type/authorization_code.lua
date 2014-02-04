@@ -11,7 +11,7 @@ return function(client, context)
     local auth = context.store.authorization.get(q)[1]
 
     if auth and auth.app.client_id == client.client_id then
-      local q2 = Query()['user.id'].eq(auth.user.id)['app.client_id'].eq(client.client_id)
+      local q2 = Query()['user.id'].eq(auth.user.id)['app.client_id'].eq(client.client_id).expires_in.gte(os.time())
       local token = store.get(q2)[1]
       if not token then
         token = Token(context, auth.client_id, auth.user.id, auth.scope)

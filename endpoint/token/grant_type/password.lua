@@ -10,7 +10,7 @@ return function(client, context)
     local user = context.store.user.get(Query().username.eq(input.username).password.eq(context.global.sha.hmac(context.global.hash.salt, input.password)))[1]
 
     if user then
-      local token = store.get(Query()['user.id'].eq(user.id))[1]
+      local token = store.get(Query()['user.id'].eq(user.id).expires_in.gte(os.time()))[1]
       if not token then
         token = Token(context, client.client_id, user.id, type(input.scope)=="table" and input.scope or {input.scope})
         store.post(token)

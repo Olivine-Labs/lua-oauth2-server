@@ -45,9 +45,9 @@ local methods = {
         client_secret = input.client_secret
       end
 
-      if not client_secret then
+      if client_id then
 
-        if client_id then
+        if not client_secret then
 
           local client = context.store.client.get(Query().client_id.is(client_id))[1]
           if client then
@@ -58,30 +58,25 @@ local methods = {
 
         else
 
-          context.response.status = 401
-          context.response.headers['WWW-Authenticate'] = 'Basic'
-        end
-
-      elseif client_id then
-
-        --lookup client
-        local client = context.store.client.get(Query().
-          client_id.eq(client_id).
-          client_secret.eq(
-            context.global.sha.hmac(
-              context.global.hash.salt,
-              client_secret
+          --lookup client
+          local client = context.store.client.get(Query().
+            client_id.eq(client_id).
+            client_secret.eq(
+              context.global.sha.hmac(context.global.hash.salt, client_secret)
             )
-          )
-        )[1]
+          )[1]
 
-        if client then
-          --execute both secret and client id secured grants
-          local func = grant.client[input.grant_type] or grant.secret[input.grant_type]
-          if func then func(client, context) end
-        else
-          context.response.status = 401
-          context.response.headers['WWW-Authenticate'] = 'Basic'
+          if client then
+
+            --execute both secret and client id secured grants
+            local func = grant.client[input.grant_type] or grant.secret[input.grant_type]
+            if func then func(client, context) end
+
+          else
+
+            context.response.status = 401
+            context.response.headers['WWW-Authenticate'] = 'Basic'
+          end
         end
       end
     end

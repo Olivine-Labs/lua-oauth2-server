@@ -8,7 +8,7 @@ return function(client, context)
   if input.access_token then
     local token = store.get(Query().access_token.eq(input.access_token))[1]
     if token and token.app.client_id == context.global.authorization.client_id then
-      local q = Query()['user.id'].eq(token.user.id)['app.client_id'].eq(client.client_id)
+      local q = Query()['user.id'].eq(token.user.id)['app.client_id'].eq(client.client_id).expires_in.gte(os.time())
       local token = store.get(q)[1]
       if not token then
         local token = {
