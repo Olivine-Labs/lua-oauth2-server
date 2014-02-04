@@ -12,7 +12,7 @@ return function(client, context)
     if user then
       local token = store.get(Query()['user.id'].eq(user.id).expires_in.gte(os.time()))[1]
       if not token then
-        token = Token(context, client.client_id, user.id, type(input.scope)=="table" and input.scope or {input.scope})
+        token = Token(context, client, user, type(input.scope)=="table" and input.scope or {input.scope})
         store.post(token)
       end
       token._id = nil

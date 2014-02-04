@@ -3,16 +3,7 @@ local store = context.store.token
 local Query = require 'lusty-store.query'
 local authentication = require 'util.httpAuthentication'(context.request.headers.authorization)
 
-local grant = {
-  secret = {
-    password          = require 'endpoint.token.grant_type.password',
-    refresh_token     = require 'endpoint.token.grant_type.refresh_token',
-  },
-  client = {
-    implicit          = require 'endpoint.token.grant_type.implicit',
-    authorization_code= require 'endpoint.token.grant_type.authorization_code',
-  }
-}
+local grant = context.global.grant
 
 context.response.headers['Cache-Control'] = "no-store"
 context.response.headers['Pragma'] = "no-cache"
@@ -35,7 +26,7 @@ local methods = {
   ]]
   POST = function(self)
     local input = context.input
-    if input and input.grant_type and grant.secret[input.grant_type] or grant.client[input.grant_type] then
+    if input and input.grant_type and (grant.secret[input.grant_type] or grant.client[input.grant_type] or grant.trusted[input.grant_type]) then
       local client_id, client_secret
       if authentication and authentication.client_id and authentication.client_secret then
         client_id = authentication.client_id
@@ -68,8 +59,12 @@ local methods = {
 
           if client then
 
+            local func
+            if client.trusted then
+              func = grant.trusted[input.grant_type]
+            end
             --execute both secret and client id secured grants
-            local func = grant.client[input.grant_type] or grant.secret[input.grant_type]
+            func = func or grant.client[input.grant_type] or grant.secret[input.grant_type]
             if func then func(client, context) end
 
           else

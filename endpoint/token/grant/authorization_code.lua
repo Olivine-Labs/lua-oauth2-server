@@ -1,4 +1,5 @@
 local Query = require 'lusty-store.query'
+local Token = require 'util.token'
 
 return function(client, context)
 
@@ -14,7 +15,7 @@ return function(client, context)
       local q2 = Query()['user.id'].eq(auth.user.id)['app.client_id'].eq(client.client_id).expires_in.gte(os.time())
       local token = store.get(q2)[1]
       if not token then
-        token = Token(context, auth.client_id, auth.user.id, auth.scope)
+        token = Token(context, auth, auth.user, auth.scope)
       end
       token.scope = auth.scope
       store.put(q2, token)
@@ -29,7 +30,9 @@ return function(client, context)
   elseif input.access_token then
 
     local token = store.get(Query().access_token.eq(input.access_token))[1]
-    if token and token.client_id == context.global.authorization.client_id then
+    local token_client = context.store.client.get(Query().client_id.eq(token.client_id))[1]
+    if token and token_client and token_client.trusted then
+
       local auth = {
         authorization_code = context.global.uuid(),
         user = {
@@ -40,7 +43,9 @@ return function(client, context)
         },
         scope = type(input.scope) == "table" and input.scope or {input.scope}
       }
+
       context.response.status = 201
+
       context.output = {
         authorization_code = token.authorization_code
       }

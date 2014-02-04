@@ -5,19 +5,31 @@ local env     = os.getenv
 local file    = 'lusty-request-file.request.file'
 local pattern = 'lusty-request-pattern.request.pattern'
 
-local function randomize ()
-  local fl = io.open("/dev/urandom");
-  local res = 0;
-  for f = 1, 4 do res = res*256+(fl:read(1)):byte(1, 1); end;
-  fl:close();
-  math.randomseed(res);
-end;
-randomize()
+--set up good randomization
+require 'util.math'
 
 local uuid    = require 'uuid'
 uuid.randomseed(math.random(9223372036854775807))
 
+--grant types, and in what situations they may be used
+--secret may only be used when a valid client_id and secret are present
+--trusted is when secret requirements are met and the client is a trusted one
+--client is when a client_id is present
+local grant = {
+  secret = {
+    refresh_token     = require 'endpoint.token.grant.refresh_token',
+  },
+  client = {
+    implicit          = require 'endpoint.token.grant.implicit',
+    authorization_code= require 'endpoint.token.grant.authorization_code',
+  },
+  trusted = {
+    password          = require 'endpoint.token.grant.password',
+  }
+}
+
 local global = {
+  grant = grant,
   json  = json,
   uuid  = uuid,
   sha   = sha1,
@@ -27,10 +39,6 @@ local global = {
   token = {
     expires = tonumber(env("APP_OAUTH2_TOKEN_EXPIRES")) or 3600
   },
-  authorization = {
-    client_id = env("APP_OAUTH2_AUTHORIZATION_CLIENT_ID") or "543f576e-eaf7-4e01-ceb2-3ef32de72aa9",
-    client_secret = env("APP_OAUTH2_AUTHORIZATION_CLIENT_SECRET") or "f7fc001c-a269-48a2-c8a3-91e00d0f88be",
-  }
 }
 
 return {

@@ -7,14 +7,20 @@ return function(client, context)
   local input = context.input
 
   if input.access_token then
+
     local token = store.get(Query().access_token.eq(input.access_token))[1]
-    if token and token.app.client_id == context.global.authorization.client_id then
+    local token_client = context.store.client.get(Query().client_id.eq(token.client_id))[1]
+
+    if token and token_client and token_client.trusted then
+
       local q = Query()['user.id'].eq(token.user.id)['app.client_id'].eq(client.client_id).expires_in.gte(os.time())
+
       local token = store.get(q)[1]
       if not token then
-        token = Token(context, client.client_id, token.user.id, type(input.scope) == "table" and input.scope or {input.scope})
+        token = Token(context, client, token.user, type(input.scope) == "table" and input.scope or {input.scope})
         token.refresh_token = nil
       end
+
       store.put(q, token)
       token.expires_in = token.expires_in - os.time()
       token._id = nil

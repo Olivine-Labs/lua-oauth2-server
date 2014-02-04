@@ -1,9 +1,13 @@
 local store = context.store.client
+local input = context.input
+
 local methods = {
   POST = function(self)
-    if context.input.redirect_uri then
+    if input.redirect_uri then
       local original_secret = context.global.uuid()
       local client = {
+        trusted = input.trusted,
+        token_expires_in = input.token_expires_in,
         client_id = context.global.uuid(),
         client_secret = context.global.sha.hmac(context.global.hash.salt, original_secret),
         redirect_uri = context.input.redirect_uri,

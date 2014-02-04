@@ -9,7 +9,7 @@ return function(client, context)
     local token = store.get(q)[1]
     if token and token.app and token.app.client_id == client.client_id then
       token.refresh_token = context.global.uuid()
-      token.expires_in = os.time() + context.global.token.expires
+      token.expires_in = os.time() + client.token_expires_in
       store.put(q, token)
       token.expires_in = token.expires_in - os.time()
       context.response.status = 200
