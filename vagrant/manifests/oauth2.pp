@@ -11,18 +11,26 @@ exec { "oauth2_make_app":
   command => "/usr/bin/luarocks make",
 }
 
-file { "/etc/openresty/nginx/nginx.conf":
+file { "/etc/openresty/nginx/":
   require => [
     Exec["openresty"],
   ],
+  force => true,
   ensure => "link",
-  target => "/source/openresty/nginx/nginx.conf",
+  target => "/source/openresty/nginx",
 }
 
-exec { "unicorn_model_persistence":
+
+file { "/etc/openresty/nginx/sites-enabled/oauth2.conf":
+  ensure => "link",
+  target => "/source/openresty/nginx/sites-available/oauth2.conf",
+}
+
+exec { "oauth2":
   require => [
-    File["/etc/openresty/nginx/nginx.conf"],
+    File["/etc/openresty/nginx"],
     File["/etc/default/openresty"],
+    File["/etc/openresty/nginx/sites-enabled/oauth2.conf"],
     Exec["oauth2_make_app"],
   ],
   command => "/usr/sbin/service openresty restart",
