@@ -3,13 +3,14 @@ local Token = require 'util.token'
 
 return function(client, context)
 
+  local authentication = require 'util.httpAuthentication'(context.request.headers.authorization)
   local store = context.store.token
   local input = context.input
 
-  if input.access_token then
+  if authentication and authentication.method == "bearer" then
 
-    local token = store.get(Query().access_token.eq(input.access_token))[1]
-    local token_client = context.store.client.get(Query().client_id.eq(token.app.client_id))[1]
+    local token = store.get(Query().access_token.eq(authentication.token).fields({_id=0}))[1]
+    local token_client = context.store.client.get(Query().client_id.eq(token.app.client_id).fields({_id=0}))[1]
 
     if token and token_client and token_client.trusted then
 
@@ -22,13 +23,13 @@ return function(client, context)
       end
 
       store.put(q, token2)
-      token2.expires_in = token.expires_in - os.time()
+      token2.expires_in = token2.expires_in - os.time()
       token2._id = nil
       token2.refresh_token = nil
       context.response.status = 201
       context.output = token2
     else
-      context.response.status = 403
+      context.response.status = 401
     end
   end
 end

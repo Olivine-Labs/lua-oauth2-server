@@ -9,7 +9,7 @@ return function(client, context)
   if input.username and input.password then
     local user = { id = context.user(input.username).login(input.password)}
     if user and user.id then
-      local token = store.get(Query()['user.id'].eq(user.id).expires_in.gte(os.time()))[1]
+      local token = store.get(Query()['user.id'].eq(user.id)['app.client_id'].eq(client.client_id).expires_in.gte(os.time()))[1]
       if not token then
         token = Token(context, client, user, type(input.scope)=="table" and input.scope or {input.scope})
         store.post(token)

@@ -7,7 +7,7 @@ describe("Client Endpoint Specification", function()
   local clients = {}
 
   setup(function()
-    local res = http.request(
+    local res, code = http.request(
       'http://localhost/token',
       'POST',
       {
@@ -21,21 +21,23 @@ describe("Client Endpoint Specification", function()
         password = "admin"
       }
     )
+    if code ~= 201 then error(code) end
     admin_token_trusted = res.access_token
-    local res = http.request(
+    local res, code = http.request(
       'http://localhost/token',
       'POST',
       {
         ['Content-Type'] = "application/json",
+        ['Authorization'] = "Bearer "..admin_token_trusted,
       },
       {
         grant_type = "implicit",
-        access_token = admin_token_trusted,
         client_id = "untrusted",
         username = "admin",
         password = "admin"
       }
     )
+    if code ~= 201 then error(code) end
     admin_token_untrusted = res.access_token
     local res = http.request(
       'http://localhost/token',

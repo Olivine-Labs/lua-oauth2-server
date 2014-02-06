@@ -11,15 +11,16 @@ context.response.headers['Pragma'] = "no-cache"
 local methods = {
   GET = function(self)
     local token = token
-    if not token then token = "" end
-    local token = store.get(Query().access_token.eq(token).expires_in.gte(os.time()))[1]
     if token then
-      context.response.status=200
-      token.expires_in = token.expires_in - os.time()
-      token.refresh_token = nil
-      context.output = token
-    else
-      context.response.status = 404
+      local token = store.get(Query().access_token.eq(token).expires_in.gte(os.time()))[1]
+      if token then
+        context.response.status=200
+        token.expires_in = token.expires_in - os.time()
+        token.refresh_token = nil
+        context.output = token
+      else
+        context.response.status = 404
+      end
     end
   end,
 
