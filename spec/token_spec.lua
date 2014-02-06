@@ -68,8 +68,6 @@ describe("Token Endpoint Specification", function()
       {
         grant_type = "implicit",
         client_id = "untrusted",
-        username = "test",
-        password = "test"
       }
     )
     if code ~= 201 then error(json.encode(token)) end
@@ -79,5 +77,88 @@ describe("Token Endpoint Specification", function()
     assert(token.expires_in)
     assert(token.user.id == 2)
     assert(token.app.client_id == "untrusted")
+  end)
+
+  it("ensures grant type implicit cannot be done using an untrusted token", function()
+    local trusted_token, code = http.request(
+      'http://localhost/token',
+      'POST',
+      {
+        ['Content-Type'] = "application/json",
+      },
+      {
+        grant_type = "password",
+        client_id = "trusted",
+        client_secret = "oauth2",
+        username = "test",
+        password = "test"
+      }
+    )
+    assert(code == 201)
+    local untrusted_token, code = http.request(
+      'http://localhost/token',
+      'POST',
+      {
+        ['Content-Type'] = "application/json",
+        ['Authorization'] = "Bearer "..trusted_token.access_token,
+      },
+      {
+        grant_type = "implicit",
+        client_id = "untrusted",
+      }
+    )
+    assert(code == 201)
+    local token, code = http.request(
+      'http://localhost/token',
+      'POST',
+      {
+        ['Content-Type'] = "application/json",
+        ['Authorization'] = "Bearer "..untrusted_token.access_token,
+      },
+      {
+        grant_type = "implicit",
+        client_id = "untrusted",
+      }
+    )
+    assert.equal(code, 401)
+  end)
+
+  it("tests refresh token", function()
+    local original_token, code = http.request(
+      'http://localhost/token',
+      'POST',
+      {
+        ['Content-Type'] = "application/json",
+      },
+      {
+        grant_type = "password",
+        client_id = "trusted",
+        client_secret = "oauth2",
+        username = "test",
+        password = "test"
+      }
+    )
+    assert(code == 201)
+    local token, code = http.request(
+      'http://localhost/token',
+      'POST',
+      {
+        ['Content-Type'] = "application/json",
+      },
+      {
+        grant_type = "refresh_token",
+        client_id = "trusted",
+        client_secret = "oauth2",
+        refresh_token = original_token.refresh_token
+      }
+    )
+    if code ~= 200 then error(json.encode(token)) end
+    assert.equal(code, 200)
+    assert(token.access_token)
+    assert(token.refresh_token ~= original_token.refresh_token)
+    assert(token.expires_in == 3600)
+    assert(token.user.id == 2)
+    assert(token.access_token == original_token.access_token)
+    assert(token.app.client_id == "trusted")
   end)
 end)
