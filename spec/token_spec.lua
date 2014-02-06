@@ -155,11 +155,20 @@ describe("Token Endpoint Specification", function()
     if code ~= 200 then error(json.encode(token)) end
     assert.equal(code, 200)
     assert(token.access_token)
+    assert(token.access_token ~= original_token.access_token)
+    assert(token.refresh_token)
     assert(token.refresh_token ~= original_token.refresh_token)
     assert(token.expires_in == 3600)
     assert(token.user.id == 2)
-    assert(token.access_token == original_token.access_token)
     assert(token.app.client_id == "trusted")
+    local old_token, code = http.request(
+      'http://localhost/token/'..original_token.access_token,
+      'GET',
+      {
+        ['Content-Type'] = "application/json",
+      }
+    )
+    assert(code == 404)
   end)
 
   it("ensures refresh token from an invalid client fails", function()

@@ -11,6 +11,7 @@ return function(client, context)
       local client = context.store.client.get(Query().client_id.eq(client.client_id))[1]
       if client then
         token.refresh_token = context.global.uuid()
+        token.access_token = context.global.uuid()
         token.expires_in = os.time() + (client.token_expires_in or 3600)
         store.put(q, token)
         token.expires_in = token.expires_in - os.time()
