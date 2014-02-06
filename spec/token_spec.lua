@@ -161,4 +161,53 @@ describe("Token Endpoint Specification", function()
     assert(token.access_token == original_token.access_token)
     assert(token.app.client_id == "trusted")
   end)
+
+  it("ensures refresh token from an invalid client fails", function()
+    local original_token, code = http.request(
+      'http://localhost/token',
+      'POST',
+      {
+        ['Content-Type'] = "application/json",
+      },
+      {
+        grant_type = "password",
+        client_id = "trusted",
+        client_secret = "oauth2",
+        username = "test",
+        password = "test"
+      }
+    )
+    assert(code == 201)
+    local token, code = http.request(
+      'http://localhost/token',
+      'POST',
+      {
+        ['Content-Type'] = "application/json",
+      },
+      {
+        grant_type = "refresh_token",
+        client_id = "untrusted",
+        client_secret = "oauth2",
+        refresh_token = original_token.refresh_token
+      }
+    )
+    assert.equal(code, 403)
+  end)
+
+  it("ensures unknown refresh token fails", function()
+    local token, code = http.request(
+      'http://localhost/token',
+      'POST',
+      {
+        ['Content-Type'] = "application/json",
+      },
+      {
+        grant_type = "refresh_token",
+        client_id = "untrusted",
+        client_secret = "oauth2",
+        refresh_token = "unknown",
+      }
+    )
+    assert.equal(code, 403)
+  end)
 end)
