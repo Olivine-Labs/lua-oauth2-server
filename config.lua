@@ -11,6 +11,11 @@ require 'util.math'
 local uuid    = require 'uuid'
 uuid.randomseed(math.random(9223372036854775807))
 
+local users = {
+  { id = 1, name = "admin", password = "admin", admin = true},
+  { id = 2, name = "test", password = "test"},
+}
+
 --grant types, and in what situations they may be used
 --secret may only be used when a valid client_id and secret are present
 --trusted is when secret requirements are met and the client is a trusted one
@@ -49,6 +54,7 @@ return {
       ['lusty-rewrite-param.rewrite.header']  = { header = "accept", param = "_accept" },
       ['lusty-rewrite-param.rewrite.header']  = { header = "content-type", param = "_content-type" },
       ['lusty-rewrite-param.rewrite.header']  = { header= "range", param = "_range" },
+      ['lusty-rewrite-param.rewrite.header']  = { header= "authorization", param = "_authorization" },
       ['lusty-rewrite-param.rewrite.method']  = { param = "_method" },
       ['lusty-rewrite-param.rewrite.body']    = { param = "_body" },
     },
@@ -100,13 +106,9 @@ return {
       ['lusty-json.output.json'] = { json = global.json, default = true }
     },
 
-    ['store:user'] = {
-      ['lusty-store-mongo.store.mongo'] = {
-        collection  = env('APP_OAUTH2_USER_DB_COLLECTION')  or 'user',
-        host        = env('APP_OAUTH2_USER_DB_HOST')        or '127.0.0.1',
-        port        = env('APP_OAUTH2_USER_DB_PORT')        or 27017,
-        database    = env('APP_OAUTH2_USER_DB_NAME')        or 'oauth2',
-        timeout     = env('APP_OAUTH2_USER_DB_TIMEOUT')     or 5000
+    ['user'] = {
+      ['external.authorizationStub'] = {
+        users = users,
       }
     },
 
@@ -161,6 +163,7 @@ return {
   -- can use things like context.log and context.store from within your handler
   context = {
     ['lusty-log.context.log'] = { level = 'debug' },
-    ['lusty-store.context.store'] = {}
+    ['lusty-store.context.store'] = {},
+    ['context.user'] = {},
   }
 }

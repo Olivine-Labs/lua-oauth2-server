@@ -10,7 +10,9 @@ context.response.headers['Pragma'] = "no-cache"
 
 local methods = {
   GET = function(self)
-    local token = store.get(Query().token.is(token).expires_in.gte(os.time()))[1]
+    local token = token
+    if not token then token = "" end
+    local token = store.get(Query().access_token.eq(token).expires_in.gte(os.time()))[1]
     if token then
       context.response.status=200
       token.expires_in = token.expires_in - os.time()
@@ -28,7 +30,7 @@ local methods = {
     local input = context.input
     if input and input.grant_type and (grant.secret[input.grant_type] or grant.client[input.grant_type] or grant.trusted[input.grant_type]) then
       local client_id, client_secret
-      if authentication and authentication.client_id and authentication.client_secret then
+      if authentication and authentication.method == 'basic' and authentication.client_id and authentication.client_secret then
         client_id = authentication.client_id
         client_secret = authentication.client_secret
       else
@@ -39,7 +41,6 @@ local methods = {
       if client_id then
 
         if not client_secret then
-
           local client = context.store.client.get(Query().client_id.is(client_id))[1]
 
           if client then

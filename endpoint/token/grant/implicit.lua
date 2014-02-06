@@ -15,18 +15,18 @@ return function(client, context)
 
       local q = Query()['user.id'].eq(token.user.id)['app.client_id'].eq(client.client_id).expires_in.gte(os.time())
 
-      local token = store.get(q)[1]
-      if not token then
-        token = Token(context, client, token.user, type(input.scope) == "table" and input.scope or {input.scope})
-        token.refresh_token = nil
+      local token2 = store.get(q)[1]
+      if not token2 then
+        token2 = Token(context, client, token.user, type(input.scope) == "table" and input.scope or {input.scope})
+        token2.refresh_token = nil
       end
 
-      store.put(q, token)
-      token.expires_in = token.expires_in - os.time()
-      token._id = nil
-      token.refresh_token = nil
+      store.put(q, token2)
+      token2.expires_in = token.expires_in - os.time()
+      token2._id = nil
+      token2.refresh_token = nil
       context.response.status = 201
-      context.output = token
+      context.output = token2
     else
       context.response.status = 403
     end

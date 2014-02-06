@@ -11,6 +11,22 @@ exec { "oauth2_make_app":
   command => "/usr/bin/luarocks make",
 }
 
+exec { "oauth2_trusted_client":
+  require => [
+    Package["mongodb"],
+    Package["openssl"],
+  ],
+  command => "/usr/bin/mongo --eval \"db.client.insert({'client_id':'trusted', 'client_secret':'8a4f18623203bd84251ba12f331c4b2a4d210c77', 'trusted':true, 'redirect_uri':'http://localhost/untrusted_redirect'})\" localhost/oauth2",
+}
+
+exec { "oauth2_untrusted_client":
+  require => [
+    Package["mongodb"],
+    Package["openssl"],
+  ],
+  command => "/usr/bin/mongo --eval \"db.client.insert({'client_id':'untrusted', 'client_secret':'8a4f18623203bd84251ba12f331c4b2a4d210c77', 'redirect_uri':'http://localhost/untrusted_redirect'})\" localhost/oauth2",
+}
+
 file { "/etc/openresty/nginx/":
   require => [
     Exec["openresty"],
