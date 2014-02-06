@@ -23,4 +23,22 @@ describe("Token Endpoint Specification", function()
     assert(token.user.id == 2)
     assert(token.app.client_id == "trusted")
   end)
+
+  it("ensures token creation with grant type password can not be done from an untrusted client", function()
+    local token, code = http.request(
+      'http://localhost/token',
+      'POST',
+      {
+        ['Content-Type'] = "application/json",
+      },
+      {
+        grant_type = "password",
+        client_id = "untrusted",
+        client_secret = "oauth2",
+        username = "test",
+        password = "test"
+      }
+    )
+    assert(code == 400)
+  end)
 end)
