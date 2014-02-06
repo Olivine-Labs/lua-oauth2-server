@@ -9,6 +9,9 @@ context.response.headers['Cache-Control'] = "no-store"
 context.response.headers['Pragma'] = "no-cache"
 
 local methods = {
+  --[[
+    validate token
+    ]]
   GET = function(self)
     local token = token
     if token then
