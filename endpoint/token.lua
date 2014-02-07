@@ -59,7 +59,7 @@ local methods = {
           local client = context.store.client.get(Query().
             client_id.eq(client_id).
             client_secret.eq(
-              context.global.sha.hmac(context.global.hash.salt, client_secret)
+              context.global.crypto.digest(context.global.hash.algorithm, client_secret)
             )
           )[1]
 

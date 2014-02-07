@@ -20,7 +20,7 @@ local methods = {
                 trusted = input.trusted,
                 token_expires_in = input.token_expires_in,
                 client_id = context.global.uuid(),
-                client_secret = context.global.sha.hmac(context.global.hash.salt, original_secret),
+                client_secret = context.global.crypto.digest(context.global.hash.algorithm, original_secret),
                 redirect_uri = context.input.redirect_uri,
               }
               store.post(client)

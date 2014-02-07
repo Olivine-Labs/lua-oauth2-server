@@ -1,6 +1,6 @@
 local json    = require 'cjson'
-local sha1    = require 'sha1'
 local env     = os.getenv
+local crypto  = require 'crypto'
 local jwt     = require 'jwt'
 local file    = 'lusty-request-file.request.file'
 local pattern = 'lusty-request-pattern.request.pattern'
@@ -38,12 +38,12 @@ local global = {
   json  = json,
   uuid  = uuid,
   jwt   = jwt,
-  sha   = sha1,
+  crypto= crypto,
   jws = {
-    algorithm = "HS256",
+    algorithm = env("APP_OAUTH2_JWS_ALGORITHM") or "HS256",
   },
   hash  = {
-    salt = env("APP_OAUTH2_SALT") or "kkejjwe438wd"
+    algorithm = env("APP_OAUTH2_HASH_ALGORITHM") or "sha512",
   },
   token = {
     expires = tonumber(env("APP_OAUTH2_TOKEN_EXPIRES")) or 3600
