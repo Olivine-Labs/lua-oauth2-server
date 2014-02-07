@@ -10,8 +10,8 @@ return function(client, context)
 
     local q = Query().authorization_code.eq(input.code)
     local auth = context.store.authorization.get(q)[1]
-    if auth and auth.app.client_id == client.client_id then
-      local q2 = Query()['user.id'].eq(auth.user.id)['app.client_id'].eq(client.client_id).expires_in.gte(os.time())
+    if auth and auth.client_id == client.client_id then
+      local q2 = Query().user_id.eq(auth.user_id).client_id.eq(client.client_id).expires_in.gte(os.time())
       local token = store.get(q2)[1]
       if not token then
         token = Token(context, auth.app, auth.user, auth.scope)
@@ -29,19 +29,15 @@ return function(client, context)
   elseif input.access_token then
 
     local token = store.get(Query().access_token.eq(input.access_token))[1]
-    local token_client = context.store.client.get(Query().client_id.eq(token.app.client_id))[1]
+    local token_client = context.store.client.get(Query().client_id.eq(token.client_id))[1]
     if token and token_client and token_client.trusted then
 
-      local q = Query()['user.id'].eq(token.user.id)['app.client_id'].eq(client.client_id)
+      local q = Query().user_id.eq(token.user_id).client_id.eq(client.client_id)
       local auth = context.store.authorization.get(q)[1]
       if not auth then
         auth = {
-          user = {
-            id = token.user.id
-          },
-          app = {
-            client_id = client.client_id
-          },
+          user_id = token.user_id,
+          client_id = client.client_id,
           scope = type(input.scope) == "table" and input.scope or {input.scope}
         }
       end

@@ -1,6 +1,7 @@
 describe("Token Endpoint Specification", function()
   local http = require 'util.http'
   local json = require 'dkjson'
+  local jwt  = require 'jwt'
 
   it("tests token creation grant type password", function()
     local token, code = http.request(
@@ -20,8 +21,12 @@ describe("Token Endpoint Specification", function()
     assert(code == 201)
     assert(token.access_token)
     assert(token.refresh_token)
-    assert(token.user.id == 2)
-    assert(token.app.client_id == "trusted")
+    local data = jwt.decode(token.access_token)
+    assert(data.sub == 2)
+    assert(data.iss == "trusted")
+    local data = jwt.decode(token.refresh_token)
+    assert(data.sub == 2)
+    assert(data.iss == "trusted")
   end)
 
   it("ensures token creation with grant type password can not be done from an untrusted client", function()
@@ -75,8 +80,9 @@ describe("Token Endpoint Specification", function()
     assert(token.access_token)
     assert(token.refresh_token == nil)
     assert(token.expires_in)
-    assert(token.user.id == 2)
-    assert(token.app.client_id == "untrusted")
+    local data = jwt.decode(token.access_token)
+    assert(data.sub == 2)
+    assert(data.iss == "untrusted")
   end)
 
   it("ensures grant type implicit cannot be done using an untrusted token", function()
@@ -159,8 +165,12 @@ describe("Token Endpoint Specification", function()
     assert(token.refresh_token)
     assert(token.refresh_token ~= original_token.refresh_token)
     assert(token.expires_in == 3600)
-    assert(token.user.id == 2)
-    assert(token.app.client_id == "trusted")
+    local data = jwt.decode(token.access_token)
+    assert(data.sub == 2)
+    assert(data.iss == "trusted")
+    local data = jwt.decode(token.refresh_token)
+    assert(data.sub == 2)
+    assert(data.iss == "trusted")
     local old_token, code = http.request(
       'http://localhost/token/'..original_token.access_token,
       'GET',

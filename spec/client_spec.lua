@@ -21,7 +21,7 @@ describe("Client Endpoint Specification", function()
         password = "admin"
       }
     )
-    if code ~= 201 then error(code) end
+    if code ~= 201 then error(json.encode(res)) end
     admin_token_trusted = res.access_token
     local res, code = http.request(
       'http://localhost/token',
@@ -37,7 +37,7 @@ describe("Client Endpoint Specification", function()
         password = "admin"
       }
     )
-    if code ~= 201 then error(code) end
+    if code ~= 201 then error(json.encode(res)) end
     admin_token_untrusted = res.access_token
     local res = http.request(
       'http://localhost/token',

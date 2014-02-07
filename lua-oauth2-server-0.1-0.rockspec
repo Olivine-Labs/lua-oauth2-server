@@ -28,6 +28,7 @@ dependencies = {
   "lusty-store-mongo == 0.9-1",
   "basexx >= 0.1.0-1",
   "uuid >= 0.2-1",
+  "jwt >= 0.1-1",
 }
 build = {
   type = "builtin",
