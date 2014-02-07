@@ -16,7 +16,7 @@ exec { "oauth2_trusted_client":
     Package["mongodb"],
     Package["openssl"],
   ],
-  command => "/usr/bin/mongo --eval \"db.client.insert({'client_id':'trusted', 'client_secret':'c907e5e522151738bdbc0f0d0d21beec6d4c123b414cc309aa18602702ab40d0d8b30baf2e40c877f8bbeb061a90137981db0de5a8a20b6fb8bda762f9ad1811', 'trusted':true, 'redirect_uri':'http://localhost/untrusted_redirect'})\" localhost/oauth2",
+  command => "/usr/bin/mongo --eval \"db.client.insert({'client_id':'trusted', 'client_secret':'c907e5e522151738bdbc0f0d0d21beec6d4c123b414cc309aa18602702ab40d0d8b30baf2e40c877f8bbeb061a90137981db0de5a8a20b6fb8bda762f9ad1811', 'trusted':true, 'redirect_uri':'http://localhost/trusted_redirect'})\" localhost/oauth2",
 }
 
 exec { "oauth2_untrusted_client":
