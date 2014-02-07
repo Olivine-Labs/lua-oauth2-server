@@ -10,10 +10,10 @@ local methods = {
       local res = context.request.sub('/token/'..authentication.token)
       if res.status == 200 then
         local token = json.decode(res.body)
-        local client = store.get(Query().client_id.eq(token.client_id))[1]
+        local client = store.get(Query().client_id.eq(token.iss))[1]
 
         if client and client.trusted then
-          if context.user(token.user_id).client().canAdd then
+          if context.user(token.sub).client().canAdd then
             if input.redirect_uri then
               local original_secret = context.global.uuid()
               local client = {

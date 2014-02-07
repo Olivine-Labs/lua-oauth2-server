@@ -15,12 +15,26 @@ local methods = {
   GET = function(self)
     local token = token
     if token then
-      local token = store.get(Query().access_token.eq(token).expires_in.gte(os.time()))[1]
-      if token then
-        context.response.status=200
-        token.expires_in = token.expires_in - os.time()
-        token.refresh_token = nil
-        context.output = token
+      local jwt = context.global.jwt
+      local data = jwt.decode(token)
+      if data then
+        local client = context.store.client.get(Query().client_id.eq(data.iss))[1]
+        if client then
+          data = jwt.decode(token, client.client_secret)
+          if data then
+            if data.exp > os.time() then
+              local token = store.get(Query().access_token.eq(token))[1]
+              if token then
+                context.response.status = 200
+                context.output = data
+              else
+                context.response.status = 404
+              end
+            else
+              context.response.status = 404
+            end
+          end
+        end
       else
         context.response.status = 404
       end
